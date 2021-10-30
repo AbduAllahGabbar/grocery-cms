@@ -1,0 +1,447 @@
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6">
+      <h5>{{ "ORDERS" | translate }}</h5>
+      <small>
+        <a [routerLink]="['/dashboard']">{{ "DASHBOARD" | translate }}</a> ->
+        <a [routerLink]="['/orders']"> {{ "ORDERS" | translate }}</a>->{{ "ORDER_DETAIL" | translate }}
+      </small>
+    </div>
+  </div>
+</div>
+<!-- <app-custom-loader *ngIf="isLoading"></app-custom-loader> -->
+<div class="container">
+  <div class="mt-4">
+    <div class="panel">
+      <div class="panel-heading ml-2">
+        {{ "ITEMS_IN_CART" | translate }}
+        <button type="button" class="btn btn-warning float-right mr-1" (click)="sendOrderUpdateNotification()">
+          <em class="fa fa-print"></em>&nbsp;&nbsp;{{'NOTIFY_USER' | translate}}
+        </button>
+      </div>
+      <hr />
+      <div class="table-responsive" *ngIf="orderData">
+        <table class="table table-hover table-bordered table-striped">
+          <thead>
+            <tr>
+              <th class="text-center">#</th>
+              <th class="text-center">{{ "PRODUCT_NAME" | translate }}</th>
+              <th class="text-center">{{ "PRICE" | translate }}</th>
+              <th class="text-center">{{ "DEAL_OFFER" | translate }}</th>
+              <th class="text-center">{{ "QUANTITY" | translate }}</th>
+              <th class="text-center">{{ "TOTAL" | translate }}</th>
+              <th class="text-center">{{ "EDIT" | translate }}</th>
+              <th class="text-center">{{ "DELETE" | translate }}</th>
+              <!--                        <th class="text-center">{{'Grand Total' | translate}}</th>-->
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="orderData.order.orderFrom == orderChannel.POS">
+              <tr *ngFor="let product of orderData.order.cart;index as i">
+                <td class="text-center">{{ i+1 }}</td>
+                <td class="text-center">{{ product.productTitle }}</td>
+                <td class="text-center">
+                  <ng-container *ngIf="!product.originalPrice">
+                    {{ product.productPrice | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+                  </ng-container>
+                  <ng-container *ngIf="product.originalPrice">
+                    {{ product.productPrice | currency:orderData.order.currencyCode:'symbol':'1.2-2' }} <br />
+                    <span class="text-info">{{"ORIGINAL_PRICE" | translate}}: {{product.originalPrice |
+                      currency:orderData.order.currencyCode:'symbol':'1.2-2'}}</span>
+                  </ng-container>
+                </td>
+                <td class="text-center">
+                  <ng-container *ngIf="product.isDealAvailable && !product.originalDealAmount">
+                    {{ product.dealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+                  </ng-container>
+                  <ng-container *ngIf="product.isDealAvailable && product.originalDealAmount">
+                    {{ product.dealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}<br />
+                    <span class="text-info">{{"ORIGINAL_DEAL_OFFER" | translate}}: {{product.originalDealAmount |
+                      currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                    </span>
+                  </ng-container>
+                  <ng-container *ngIf="!product.isDealAvailable">
+                    {{0 | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                  </ng-container>
+                </td>
+
+                <td class="text-center">
+                  <ng-container *ngIf="!product.originalQuantity">
+                    {{ product.quantity }}&nbsp;({{product.unit}})
+                  </ng-container>
+                  <ng-container *ngIf="product.originalQuantity">
+                    {{ product.quantity }}&nbsp;({{product.unit}})<br />
+                    <span class="text-info">{{"ORIGINAL_QUANTITY" | translate}}:
+                      {{ product.originalQuantity }}&nbsp;({{product.originalUnit}})
+                    </span>
+                  </ng-container>
+                </td>
+                <td class="text-center">
+                  <ng-container *ngIf="!product.originalProductTotal">
+                    {{product.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                  </ng-container>
+                  <ng-container *ngIf="product.originalProductTotal">
+                    {{product.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}<br />
+                    <span class="text-info">{{"ORIGINAL_TOTAL" | translate}}:
+                      {{product.originalProductTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                    </span>
+                  </ng-container>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-raised btn-primary"
+                    (click)="openEditProductModal(editProductModalElem,product,true)" type="button"
+                    *ngIf="!product.isProductDeleted;else productDeleted" [disabled]="isLoading">
+                    <em _ngcontent-c10="" class="fa fa-pencil"></em>
+                  </button>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-raised btn-danger" type="button"
+                    (click)="checkProductCountBeforeDelete(product._id)"
+                    *ngIf="!product.isProductDeleted;else productDeleted" [disabled]="isLoading">
+                    <em _ngcontent-c10="" class="fa fa-trash"></em>
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+            <ng-container *ngIf="orderData.order.orderFrom != orderChannel.POS">
+              <tr *ngFor="let product of orderData.order.cart;index as i">
+                <td class="text-center">{{ i+1 }}</td>
+                <td class="text-center">{{ product.productName }}</td>
+                <td class="text-center">
+                  <ng-container *ngIf="!product.originalPrice">
+                    {{ product.price | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+                  </ng-container>
+                  <ng-container *ngIf="product.originalPrice">
+                    {{ product.price | currency:orderData.order.currencyCode:'symbol':'1.2-2' }} <br />
+                    <span class="text-info">{{"ORIGINAL_PRICE" | translate}}: {{product.originalPrice |
+                      currency:orderData.order.currencyCode:'symbol':'1.2-2'}}</span>
+                  </ng-container>
+                </td>
+                <td class="text-center">
+                  <ng-container *ngIf="product.isDealAvailable && !product.originalDealAmount">
+                    {{ product.dealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+                  </ng-container>
+                  <ng-container *ngIf="product.isDealAvailable && product.originalDealAmount">
+                    {{ product.dealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}<br />
+                    <span class="text-info">{{"ORIGINAL_DEAL_OFFER" | translate}}: {{product.originalDealAmount |
+                      currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                    </span>
+                  </ng-container>
+                  <ng-container *ngIf="!product.isDealAvailable">
+                    {{0 | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                  </ng-container>
+                </td>
+
+                <td class="text-center">
+                  <ng-container *ngIf="!product.originalQuantity">
+                    {{ product.quantity }}&nbsp;({{product.unit}})
+                  </ng-container>
+                  <ng-container *ngIf="product.originalQuantity">
+                    {{ product.quantity }}&nbsp;({{product.unit}})<br />
+                    <span class="text-info">{{"ORIGINAL_QUANTITY" | translate}}:
+                      {{ product.originalQuantity }}&nbsp;({{product.originalUnit}})
+                    </span>
+                  </ng-container>
+                </td>
+                <td class="text-center">
+                  <ng-container *ngIf="!product.originalProductTotal">
+                    {{product.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                  </ng-container>
+                  <ng-container *ngIf="product.originalProductTotal">
+                    {{product.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}<br />
+                    <span class="text-info">{{"ORIGINAL_TOTAL" | translate}}:
+                      {{product.originalProductTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'}}
+                    </span>
+                  </ng-container>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-raised btn-primary"
+                    (click)="openEditProductModal(editProductModalElem,product,false)" type="button"
+                    *ngIf="!product.isProductDeleted;else productDeleted" [disabled]="isLoading">
+                    <em _ngcontent-c10="" class="fa fa-pencil"></em>
+                  </button>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-raised btn-danger" type="button"
+                    (click)="checkProductCountBeforeDelete(product._id)"
+                    *ngIf="!product.isProductDeleted;else productDeleted" [disabled]="isLoading">
+                    <em _ngcontent-c10="" class="fa fa-trash"></em>
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+            <tr>
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong>{{ "TOTAL" | translate }} :</strong>
+              </td>
+              <td class="text-center">{{ orderData.order.subTotal |
+                currency:orderData.order.currencyCode:'symbol':'1.2-2' }}</td>
+            </tr>
+
+            <tr>
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong>{{ "TAX" | translate }}:</strong>
+              </td>
+              <td class="text-center">{{ orderData.order.tax | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong>{{ "DELIVERY_CHARGES" | translate }}:</strong>
+              </td>
+              <td class="text-center">
+                {{ orderData.order.deliveryCharges ? (orderData.order.deliveryCharges |
+                currency:orderData.order.currencyCode:'symbol':'1.2-2') : (0 |
+                currency:orderData.order.currencyCode:'symbol':'1.2-2') }}</td>
+            </tr>
+            <tr *ngIf="orderData.order.couponCode">
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong>{{ "DISCOUNT" | translate }}:</strong>
+              </td>
+              <td class="text-center">{{ orderData.order.couponAmount |
+                currency:orderData.order.currencyCode:'symbol':'1.2-2' }}</td>
+            </tr>
+            <tr>
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong>{{ "USED_WALLET_AMOUNT" | translate }}:</strong>
+              </td>
+              <td class="text-center">{{ orderData.order.usedWalletAmount |
+                currency:orderData.order.currencyCode:'symbol':'1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="orderData.order.amountRefundedOrderModified && orderData.order.amountRefundedOrderModified > 0">
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong>{{ "AMOUNT_REFUNDED_AFTER_ORDER_UPDATE" | translate }}:</strong>
+              </td>
+              <td class="text-center">{{ orderData.order.amountRefundedOrderModified |
+                currency:orderData.order.currencyCode:'symbol':'1.2-2' }}</td>
+            </tr>
+            <tr>
+              <td colspan="6"></td>
+              <td class="text-right">
+                <strong> {{ "GRAND_TOTAL" | translate }}:</strong>
+              </td>
+              <td class="text-center">
+                <strong>{{ orderData.order.grandTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2'
+                  }}</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-container *ngIf="showAddProduct">
+        <!-- <div class="form-group form-inline custom-input">
+          <input type="text" name="searchUser" class="form-control searchinput filterSearch w-100 custom-form"
+            placeholder="Search the Products" />
+          <i class="fa fa-search search-icon"></i>
+        </div> -->
+
+        <div class="row mx-2">
+          <div class="col-md-4" *ngFor="let product of productList">
+            <h4 class="searched-title">{{ product.title }}</h4>
+            <button class="btn btn-primary edit-button" type="button"
+              (click)="getProductDetails(product._id,addToCartModal)">
+              {{"ADD_TO_CART" | translate}}
+            </button>
+          </div>
+        </div>
+      </ng-container>
+      <ngb-pagination [(page)]="page" [pageSize]="limit" [collectionSize]="totalRecords"
+        (pageChange)="pageChange($event)"></ngb-pagination>
+
+      <ng-template #editProductModalElem let-modal>
+        <div class="modal-header">
+          <h4 class="modal-title" id="modal-basic-title">{{ "UPDATE_PRODUCT" | translate }}</h4>
+          <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form (ngSubmit)="verifySubTotalBeforeEdit()" #editProductForm="ngForm">
+          <div class="modal-body" *ngIf="orderData.order.orderFrom != orderChannel.POS">
+            <h6>{{ "PRODUCT_NAME" | translate }}</h6>
+            <div class="form-group form-inline custom-input">
+              {{ selectedProduct.product.productName }}
+            </div>
+            <h6>{{ "NEW_UNIT" | translate }}</h6>
+            <div class="form-group form-inline custom-input">
+              <input type="text" name="newQuantity" [(ngModel)]="selectedProduct.modifiedVolume" required
+                class="form-control searchinput filterSearch w-100 form-custom" />
+            </div>
+            <h6>{{ "NEW_PRICE" | translate }}
+              <ng-container *ngIf="selectedProduct.product.originalUnit">
+                <span *ngTemplateOutlet="originalUnit"></span>
+              </ng-container>
+            </h6>
+            <div class="form-group form-inline custom-input">
+              <input type="number" name="newPrice" [min]="0" [(ngModel)]="selectedProduct.modifiedPrice" required
+                class="form-control searchinput filterSearch w-100 form-custom" (input)="calculateTotal()"
+                #modifiedPrice="ngModel" />
+
+            </div>
+            <h6>{{ "NEW_QUANTITY" | translate }}</h6>
+            <div class="form-group form-inline custom-input counter-block">
+              <a class="show-pointer" (click)="changeQuantity(changeQuantityTypes.DECREMENT)"><img
+                  src="assets/img/img/minus.png" /></a>
+              <h6 class="counter">{{ selectedProduct.modifiedQuantity }}</h6>
+              <a class="show-pointer" (click)="changeQuantity(changeQuantityTypes.INCREMENT)"><img
+                  src="assets/img/img/plus.png" /></a>
+            </div>
+            <ng-container *ngIf="selectedProduct.product.isDealAvailable">
+              <h6>{{ "DEAL_OFFER" | translate }}</h6>
+              <div class="form-group form-inline custom-input">
+                {{ selectedProduct.modifiedDealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+              </div>
+            </ng-container>
+            <h6>{{ "TOTAL" | translate }}</h6>
+            <div>
+              {{ selectedProduct.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+            </div>
+            <!-- <div>
+              <span class="help-block" *ngIf="selectedProduct.productTotal > selectedProduct.product.productTotal">
+                <small class="text-danger">{{ "PRODUCT_TOTAL_ERROR" | translate
+                  }}&nbsp;{{selectedProduct.product.productTotal |
+                  currency:orderData.order.currencyCode:'symbol':'1.2-2'}}</small>
+              </span>
+            </div> -->
+
+          </div>
+          <div class="modal-body" *ngIf="orderData.order.orderFrom == orderChannel.POS">
+            <h6>{{ "PRODUCT_NAME" | translate }}</h6>
+            <div class="form-group form-inline custom-input">
+              {{ selectedProduct.posOrderProduct.productTitle }}
+            </div>
+            <h6>{{ "NEW_UNIT" | translate }}</h6>
+            <div class="form-group form-inline custom-input">
+              <input type="text" name="newQuantity" [(ngModel)]="selectedProduct.modifiedVolume" required
+                class="form-control searchinput filterSearch w-100 form-custom" />
+            </div>
+            <h6>{{ "NEW_PRICE" | translate }}
+              <ng-container *ngIf="selectedProduct.posOrderProduct.originalUnit">
+                <span *ngTemplateOutlet="originalUnit"></span>
+              </ng-container>
+            </h6>
+            <div class="form-group form-inline custom-input">
+              <input type="number" name="newPrice" [min]="0" [(ngModel)]="selectedProduct.modifiedPrice" required
+                class="form-control searchinput filterSearch w-100 form-custom" (input)="calculateTotal()"
+                #modifiedPrice="ngModel" />
+              <!-- <span class="help-block"
+                *ngIf="modifiedPrice.dirty && selectedProduct.modifiedPrice > selectedProduct.posOrderProduct.productPrice">
+                <small class="text-danger">{{ "NEW_PRICE_ERROR" | translate
+                  }}&nbsp;{{selectedProduct.product.price |
+                  currency:orderData.order.currencyCode:'symbol':'1.2-2'}}</small>
+              </span> -->
+            </div>
+            <h6>{{ "NEW_QUANTITY" | translate }}</h6>
+            <div class="form-group form-inline custom-input counter-block">
+              <a class="show-pointer" (click)="changeQuantity(changeQuantityTypes.DECREMENT)"><img
+                  src="assets/img/img/minus.png" /></a>
+              <h6 class="counter">{{ selectedProduct.modifiedQuantity }}</h6>
+              <a class="show-pointer" (click)="changeQuantity(changeQuantityTypes.INCREMENT)"><img
+                  src="assets/img/img/plus.png" /></a>
+            </div>
+            <ng-container *ngIf="selectedProduct.posOrderProduct.isDealAvailable">
+              <h6>{{ "DEAL_OFFER" | translate }}</h6>
+              <div class="form-group form-inline custom-input">
+                {{ selectedProduct.modifiedDealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+              </div>
+            </ng-container>
+            <h6>{{ "TOTAL" | translate }}</h6>
+            <div>
+              {{ selectedProduct.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+            </div>
+            <!-- <div>
+              <span class="help-block"
+                *ngIf="selectedProduct.productTotal > selectedProduct.posOrderProduct.productTotal">
+                <small class="text-danger">{{ "PRODUCT_TOTAL_ERROR" | translate
+                  }}&nbsp;{{selectedProduct.posOrderProduct.productTotal |
+                  currency:orderData.order.currencyCode:'symbol':'1.2-2'}}</small>
+              </span>
+            </div> -->
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-dark" [disabled]="isLoading" (click)="closeEditProductModal()">
+              {{ "CANCEL" | translate }}
+            </button>
+            <button type="s" class="btn btn-warning" *ngIf="orderData.order.orderFrom != orderChannel.POS"
+              [disabled]="editProductForm.invalid || isLoading">
+              {{ "EDIT" | translate }}
+            </button>
+            <button type="s" class="btn btn-warning" *ngIf="orderData.order.orderFrom == orderChannel.POS"
+              [disabled]="editProductForm.invalid || isLoading">
+              {{ "SUBMIT" | translate }}
+            </button>
+          </div>
+        </form>
+      </ng-template>
+
+      <div class="panel-footer">
+        <div class="row"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<ng-template #productDeleted>
+  <small class="text-info">{{"PRODUCT_DELETED" | translate}}</small>
+</ng-template>
+<ng-template #addToCartModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title text-center" id="modal-basic-title">{{ "ADD_TO_CART" | translate }}</h4>
+    <button type="button" class="close" aria-label="Close" (click)="closeAddToCartModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form (ngSubmit)="verifyProductBeforeAdd()" #addToCartForm="ngForm">
+    <div class="modal-body">
+      <h6>{{ "PRODUCT_NAME" | translate }}</h6>
+      <div class="form-group form-inline custom-input">
+        {{ productDetails.title }}
+      </div>
+      <h6>{{ "SELECT_VARIANTS" | translate }}</h6>
+      <ng-select [(ngModel)]="addToCartData.variant" [name]="'selectedVariant'" (change)="calculateProductTotal()"
+        required>
+        <ng-option *ngFor="let variant of productDetails.variant" [value]="variant">
+          {{ variant.unit }}&nbsp;({{variant.price | currency:orderData.order.currencyCode:'symbol':'1.2-2' }})
+        </ng-option>
+      </ng-select>
+      <h6>{{ "QUANTITY" | translate }}</h6>
+      <div class="form-group form-inline custom-input counter-block">
+        <a class="show-pointer" (click)="changeAddProductQuantity(changeQuantityTypes.DECREMENT)"><img
+            src="assets/img/img/minus.png" /></a>
+        <h6 class="counter">{{ addToCartData.quantity }}</h6>
+        <a class="show-pointer" (click)="changeAddProductQuantity(changeQuantityTypes.INCREMENT)"><img
+            src="assets/img/img/plus.png" /></a>
+      </div>
+      <ng-container *ngIf="productDetails.isDealAvailable">
+        <h6>{{ "DEAL_OFFER" | translate }}</h6>
+        <div class="form-group form-inline custom-input">
+          {{ addToCartData.dealAmount | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+        </div>
+      </ng-container>
+      <ng-container>
+        <h6>{{ "TOTAL" | translate }}</h6>
+        <div class="form-group form-inline custom-input">
+          {{ addToCartData.productTotal | currency:orderData.order.currencyCode:'symbol':'1.2-2' }}
+        </div>
+      </ng-container>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-dark" [disabled]="isLoading" (click)="closeAddToCartModal()">
+        {{ "CANCEL" | translate }}
+      </button>
+      <button type="s" class="btn btn-warning" [disabled]="addToCartForm.invalid || isLoading">
+        {{ "ADD_TO_CART" | translate }}
+      </button>
+    </div>
+  </form>
+</ng-template>
+<ng-template #originalUnit>
+  <span class="text-info">({{"ORIGINAL_PRICE" | translate}}:{{selectedProduct.product.price |
+    currency:orderData.order.currencyCode:'symbol':'1.2-2'}})</span>
+</ng-template>

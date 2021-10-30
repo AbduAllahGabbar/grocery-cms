@@ -1,0 +1,598 @@
+<div class="container" *ngIf="order">
+    <div class="row">
+        <div class="col-sm-6">
+            <h5>{{'ORDERS' | translate}}</h5>
+            <small>
+                <a [routerLink]=" ['/dashboard'] ">{{'DASHBOARD' | translate}}</a> ->
+                <a [routerLink]="['/orders']"> {{'ORDERS' | translate}}</a>->{{'ORDER_DETAIL' | translate}}
+            </small>
+        </div>
+        <div class="col-sm-6 pull-right" *ngIf="(order.order.orderStatus === 'DELIVERED' 
+         || order.order.orderStatus === 'CONFIRMED'
+         || order.order.orderStatus === 'PENDING'
+         || order.order.orderStatus === 'OUT_FOR_DELIVERY' 
+         || order.order.orderStatus === 'CANCELLED') && order.order.invoiceToken">
+            <button class="btn btn-warning" (click)="openInvoice()">
+                <em class="fa fa-print"></em>&nbsp;&nbsp;{{'INVOICE' | translate}}
+            </button>
+        </div>
+    </div>
+</div>
+<app-custom-loader *ngIf="isLoading"></app-custom-loader>
+<div class="container" *ngIf="order">
+    <div>
+        <div class="panel panel-default">
+            <div class="panel-heading">{{'ORDER_INFORMATION' | translate}}</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="lead bb">{{'DETAILS' | translate}}</p>
+                        <hr>
+                        <form class="form-horizontal p-20">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ORDER_ID' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.orderID}}</strong>
+                                        <!-- <strong>{{order.createdAt |  date:'hh:mm'}}</strong> -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'PURCHASED_ON' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.createdAt | date:'dd-MMM-yy'}}</strong>
+                                        <!-- <strong>{{order.createdAt |  date:'hh:mm'}}</strong> -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'CLIENT_NAME' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.firstName}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'IS_SUBSCRIPTION_ORDER' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.isSubscriptionOrder ? ("YES" | translate) : ("NO" |
+                                            translate)}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ITEMS' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.totalProduct}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" *ngIf="order.order.deliveryInstruction">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'DELIVERY_INSTRUCTIONS' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.deliveryInstruction}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'AMOUNT' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.grandTotal |
+                                            currency:order.order.currencyCode:'symbol':'1.2-2'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'STATUS' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <!-- <span _ngcontent-c12="" class="label label-warning ng-star-inserted">pending</span> -->
+                                        <span class="label label-warning ng-star-inserted">{{order.order.orderStatus |
+                                            translate}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <ng-container *ngIf="!order.order.isSubscriptionOrder">
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-4">{{'DELIVERY_DATE' | translate}}:</div>
+                                        <div class="col-sm-8">
+                                            <strong>{{order.order.deliveryDate}}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-4">{{'TIME_SLOT' | translate}}:</div>
+                                        <div class="col-sm-8">
+                                            <strong>{{order.order.deliveryTime}}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-container>
+                            <div class="form-group"
+                                *ngIf="!order.order.shippingMethod || (order.order.shippingMethod && order.order.shippingMethod == shippingMethods.DELIVERY)">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ASSIGNED_TO' | translate}}</div>
+                                    <div class="col-sm-8">
+                                        <!-- <span _ngcontent-c12="" class="label label-warning ng-star-inserted">pending</span> -->
+                                        <span class="label label-warning ng-star-inserted"
+                                            *ngIf="order.order.isOrderAssigned && order.order.assignedToName">{{order.order.assignedToName}}
+                                        </span>
+                                        <span *ngIf="order.order.isOrderAssigned && !order.order.assignedToName">-
+                                        </span>
+                                        <span class="text-info"
+                                            *ngIf="!order.order.isOrderAssigned">{{"NOT_YET_ASSIGNED" |
+                                            translate}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'DELIVERY_TYPE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.shippingMethod ? (order.order.shippingMethod | translate)
+                                            : ('DELIVERY' | translate)}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="lead bb">{{'CLIENT' | translate}}</p>
+                        <hr>
+                        <form class="form-horizontal p-20">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'NAME' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.firstName}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'EMAIL' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.email || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'PHONE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.countryCode}}{{order.order.user.mobileNumber}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row"
+                    *ngIf="!order.order.shippingMethod || (order.order.shippingMethod && order.order.shippingMethod == shippingMethods.DELIVERY)">
+                    <div [ngClass]="order.order.isOrderAssigned ? 'col-md-4' : 'col-md-6'">
+                        <p class="lead bb">{{'BILLING_ADDRESS' | translate}}</p>
+                        <hr>
+                        <form class="form-horizontal p-20">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'FULL_NAME' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.firstName}}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" *ngIf="order.order.address">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ADDRESS' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.address}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'FLAT_NUMBER' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.flatNo || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'APARTMENT_NAME' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.apartmentName || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'LANDMARK' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.landmark || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ADDRESS_TYPE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.addressType || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ZIP_CODE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.postalCode}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'PHONE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.mobileNumber}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div [ngClass]="order.order.isOrderAssigned ? 'col-md-4' : 'col-md-6'">
+                        <p class="lead bb">{{'SHIPPING_ADDRESS' | translate}}</p>
+                        <hr>
+                        <form class="form-horizontal p-20">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'FULL_NAME' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.firstName}}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" *ngIf="order.order.address">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ADDRESS' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.address}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'FLAT_NUMBER' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.flatNo || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'APARTMENT_NAME' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.apartmentName || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'LANDMARK' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.landmark || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ADDRESS_TYPE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.addressType || '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ZIP_CODE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.address.postalCode}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'PHONE' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.user.mobileNumber}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-4" *ngIf="order.order.isOrderAssigned">
+                        <p class="lead bb">{{'DELIVERY_BOY_INFO' | translate}}</p>
+                        <hr>
+                        <form class="form-horizontal p-20">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'FULL_NAME' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.order.assignedToName}}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" *ngIf="order.order.address">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'ORDER_RATING' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong class="badge badge-success">{{order.deliveryBoyRating ?
+                                            (order.deliveryBoyRating.rate + '&#x2605;') : '-'}}
+                                            <!-- {{order.deliveryBoyRating.rate ? '&#x2605;': ''}} -->
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4">{{'COMMENT' | translate}}:</div>
+                                    <div class="col-sm-8">
+                                        <strong>{{order.deliveryBoyRating ? order.deliveryBoyRating.description :
+                                            '-'}}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+                <h6>{{'PAYMENT_DETAILS' | translate}}</h6>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6>{{'SUB_TOTAL' | translate}}:</h6>
+                                <h6>{{'TAX_NAME' | translate}}:</h6>
+                                <h6>{{'TAX_PERCENTAGE' | translate}}:</h6>
+                                <h6>{{'DELIVERY_CHARGES' | translate}}:</h6>
+                                <h6>{{'PAYMENT_TYPE' | translate}}:</h6>
+                                <h6>{{'PAYMENT_STATUS' | translate}}:</h6>
+                                <h6>{{'USED_WALLET_AMOUNT' | translate}}:</h6>
+                                <h6>{{'AMOUNT_REFUNDED' | translate}}:</h6>
+                                <h6 *ngIf="order.order.amountRefundedOrderModified">{{
+                                    "AMOUNT_REFUNDED_AFTER_ORDER_UPDATE" | translate }}</h6>
+                            </div>
+                            <div class="col-md-7">
+                                <h6 class="details">
+                                    {{order.order.subTotal | currency:order.order.currencyCode:'symbol':'1.2-2'}}</h6>
+                                <h6 class="details">{{order.cart ? order.cart.taxInfo.taxName : '-'}}</h6>
+                                <h6 class="details">{{order.cart ? order.cart.taxInfo.amount : 0}}%</h6>
+                                <h6 class="details">
+                                    {{order.order.deliveryCharges | currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </h6>
+                                <h6 class="details">{{order.order.paymentType}}</h6>
+                                <h6 class="details">
+                                    {{order.order.paymentStatus | translate}}
+                                </h6>
+                                <h6 class="details">
+                                    {{order.order.usedWalletAmount |
+                                    currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </h6>
+                                <h6 class="details">
+                                    {{order.order.amountRefunded | currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </h6>
+                                <h6 class="details" *ngIf="order.order.amountRefundedOrderModified">
+                                    {{order.order.amountRefundedOrderModified |
+                                    currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6>{{'TOTAL' | translate}}:</h6>
+                                <h6 *ngIf="order.order.couponCode">{{'DISCOUNT' | translate}}:</h6>
+                                <h6>{{'PAY_AMOUNT' | translate}}:</h6>
+                            </div>
+                            <div class="col-md-7 payment">
+                                <h6 class="details">
+                                    {{order.order.grandTotal | currency:order.order.currencyCode:'symbol':'1.2-2'}}</h6>
+                                <h6 class="details" *ngIf="order.order.couponCode">
+                                    {{order.order.couponAmount | currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </h6>
+                                <h6 class="details">
+                                    {{order.order.grandTotal | currency:order.order.currencyCode:'symbol':'1.2-2'}}</h6>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" *ngIf="order.cart || order.order.isSubscriptionOrder">
+            <div class="panel-heading ml-2">{{'ITEMS_IN_CART' | translate}}</div>
+            <hr>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th class="text-center">{{'PRODUCT_NAME' | translate}}</th>
+                            <th class="text-center">{{'PRICE' | translate}}</th>
+                            <th class="text-center">{{'DEAL_OFFER' | translate}}</th>
+                            <th class="text-center">{{'QUANTITY' | translate}}</th>
+                            <th class="text-center">{{'TOTAL' | translate}}</th>
+                            <th class="text-center">{{'PRODUCT_MODIFIED' | translate}}</th>
+                            <th class="text-center">{{'AMOUNT_REFUNDED' | translate}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let data of order.order.cart; let i=index ">
+                            <td class="text-center">{{i + 1}}</td>
+                            <td class="text-center"> {{data.productName}}</td>
+                            <td class="text-center">
+                                <ng-container *ngIf="!data.originalPrice">
+                                    {{data.price | currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </ng-container>
+                                <ng-container *ngIf="data.originalPrice">
+                                    {{data.price | currency:order.order.currencyCode:'symbol':'1.2-2'}} <br />
+                                    <span class="text-info">{{"ORIGINAL_PRICE" | translate}}: {{data.originalPrice |
+                                        currency:order.order.currencyCode:'symbol':'1.2-2'}}</span>
+                                </ng-container>
+                            </td>
+                            <td class="text-center">
+                                <ng-container *ngIf="data.isDealAvailable && !data.originalDealAmount">
+                                    {{ data.dealTotalAmount | currency:order.order.currencyCode:'symbol':'1.2-2' }}
+                                </ng-container>
+                                <ng-container *ngIf="data.isDealAvailable && data.originalDealAmount">
+                                    {{ data.dealTotalAmount | currency:order.order.currencyCode:'symbol':'1.2-2'
+                                    }}<br />
+                                    <span class="text-info">{{"ORIGINAL_DEAL_OFFER" | translate}}:
+                                        {{data.originalDealAmount |
+                                        currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                    </span>
+                                </ng-container>
+                                <ng-container *ngIf="!data.isDealAvailable">
+                                    {{0 | currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </ng-container>
+                            </td>
+
+                            <td class="text-center">
+                                <ng-container *ngIf="!data.originalQuantity">
+                                    {{ data.quantity }}&nbsp;({{data.unit}})
+                                </ng-container>
+                                <ng-container *ngIf="data.originalQuantity">
+                                    {{ data.quantity }}&nbsp;({{data.unit}})<br />
+                                    <span class="text-info">{{"ORIGINAL_QUANTITY" | translate}}:
+                                        {{ data.originalQuantity }}&nbsp;({{data.originalUnit}})
+                                    </span>
+                                </ng-container>
+                            </td>
+                            <td class="text-center">
+                                <ng-container *ngIf="!data.originalProductTotal">
+                                    {{data.productTotal | currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                </ng-container>
+                                <ng-container *ngIf="data.originalProductTotal">
+                                    {{data.productTotal | currency:order.order.currencyCode:'symbol':'1.2-2'}}<br />
+                                    <span class="text-info">{{"ORIGINAL_TOTAL" | translate}}:
+                                        {{data.originalProductTotal |
+                                        currency:order.order.currencyCode:'symbol':'1.2-2'}}
+                                    </span>
+                                </ng-container>
+                            </td>
+                            <td class="text-center"> {{data.isOrderModified ? ("YES" | translate): ("NO" | translate)}}
+                            </td>
+
+                            <td class="text-center">
+                                {{data.amountRefundedOrderModified ? (data.amountRefundedOrderModified |
+                                currency:order.order.currencyCode:'symbol':'1.2-2') : (0 |
+                                currency:order.order.currencyCode:'symbol':'1.2-2')}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong>{{"TOTAL" | translate}} :</strong>
+                            </td>
+                            <td class="text-center">
+                                {{order.order.isSubscriptionOrder ? (order.order.subTotal |
+                                currency:order.order.currencyCode:'symbol':'1.2-2') : (order.cart.subTotal |
+                                currency:order.order.currencyCode:'symbol':'1.2-2')}}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong>{{'TAX' | translate}}:</strong>
+                            </td>
+                            <td class="text-center">
+                                {{order.order.isSubscriptionOrder ? (order.order.tax |
+                                currency:order.order.currencyCode:'symbol':'1.2-2') : (order.cart.tax |
+                                currency:order.order.currencyCode:'symbol':'1.2-2')}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong>{{'DELIVERY_CHARGES' | translate}}:</strong>
+                            </td>
+                            <td class="text-center">
+                                {{order.order.isSubscriptionOrder ? (order.order.deliveryCharges |
+                                currency:order.order.currencyCode:'symbol':'1.2-2') : (order.cart.deliveryCharges |
+                                currency:order.order.currencyCode:'symbol':'1.2-2')}}
+                            </td>
+                        </tr>
+                        <tr *ngIf="order.cart && order.cart.couponCode">
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong>{{'DISCOUNT' | translate}}:</strong>
+                            </td>
+                            <td class="text-center">
+                                {{order.order.isSubscriptionOrder ? (order.order.couponAmount |
+                                currency:order.order.currencyCode:'symbol':'1.2-2') : (order.cart.couponAmount |
+                                currency:order.order.currencyCode:'symbol':'1.2-2')}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong>{{'USED_WALLET_AMOUNT' | translate}}:</strong>
+                            </td>
+                            <td class="text-center">
+                                {{order.order.isSubscriptionOrder ? (order.order.usedWalletAmount |
+                                currency:order.order.currencyCode:'symbol':'1.2-2') : (order.cart.walletAmount |
+                                currency:order.order.currencyCode:'symbol':'1.2-2')}}
+
+                            </td>
+                        </tr>
+                        <tr
+                            *ngIf="order.order.amountRefundedOrderModified && order.order.amountRefundedOrderModified > 0">
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong>{{ "AMOUNT_REFUNDED_AFTER_ORDER_UPDATE" | translate }}:</strong>
+                            </td>
+                            <td class="text-center">
+                                {{ order.order.amountRefundedOrderModified |
+                                currency:order.order.currencyCode:'symbol':'1.2-2' }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td class="text-right">
+                                <strong> {{'GRAND_TOTAL' | translate}}:</strong>
+                            </td>
+                            <td class="text-center">
+                                <strong>
+                                    {{order.order.isSubscriptionOrder ? (order.order.usedWalletAmount |
+                                    currency:order.order.currencyCode:'symbol':'1.2-2') : (order.cart.grandTotal |
+                                    currency:order.order.currencyCode:'symbol':'1.2-2')}}
+                                </strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <div class="row ">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

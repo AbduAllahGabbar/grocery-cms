@@ -1,0 +1,291 @@
+<div class="container">
+  <br />
+
+  <div class="row">
+    <div class="col-md-12">
+      <ul class="nav">
+        <li class="nav-item" *ngFor="let category of categoryList"
+          [ngClass]="selectedCategory && selectedCategory._id === category._id ? 'active' : ''">
+          <a class="nav-link show-pointer" (click)="categorySelectionEvent(category)">{{ category.title }}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-7">
+      <div class="menu-block">
+        <h6 class="menu-title">{{ "MENU" | translate }}</h6>
+        <div class="form-group form-inline">
+          <input class="form-control searchinput filterSearch" type="text" placeholder="{{ 'SEARCH_PLACEHOLDER' | translate }}" name="searchProduct" #searchProduct />
+        </div>
+
+        <p class="text-center text-success" *ngIf="productsList.length === 0">
+          <b>{{ "NO_PRODUCTS_FOUND" | translate }}</b>
+        </p>
+        <div class="row mx-0" *ngIf="productsList.length > 0">
+          <div class="col-md-4 show-pointer mt-2 flex-col" *ngFor="let product of productsList">
+            <div class="menu-products">
+              <div class="img-block">
+                <img
+                  [src]="product.productImages && product.productImages.length > 0 ? product.productImages[0].imageUrl : product.imageUrl" />
+
+                <div class="selected-img" *ngIf="product.isAddedToCart">
+                  <img src="assets/img/img/check.png" />
+                </div>
+              </div>
+
+              <div class="row px-3">
+                <div class="col-md-7">
+                  <h6 class="">
+                    <!-- <span><img src="assets/img/img/veg.svg" /></span> -->
+                    {{ product.title }}
+                  </h6>
+                </div>
+                <div class="col-md-5 text-right">
+                  <h6 class="">{{ product.variant[0].price | currency:currencyCode:'symbol':'1.2-2' }}</h6>
+                </div>
+              </div>
+              <div class="row variants mx-1" *ngIf="!product.isAddedToCart">
+                <div class="col-md-12">
+                  <h6 class="text-danger text-center"
+                    *ngIf="product.variant.length === 1 && product.variant[0].productStock === 0">
+                    <b>{{"OUT_OF_STOCK" | translate}}</b>
+                  </h6>
+                  <button class="btn w-100 my-3 btn-sm add-btn" type="button"
+                    (click)="checkVariant(product,variantModal)"
+                    *ngIf="(product.variant.length === 1 && product.variant[0].productStock > 0) || product.variant.length > 1">
+                    {{ "ADD_TO_CART" | translate}}
+                    <!-- <span class="float-right">
+                      {{ product.variant[0].price | currency:currencyCode:'symbol':'1.2-2'}}</span> -->
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ngb-pagination class="mt-2 col-md-5" [maxSize]="5" [(page)]="page" [pageSize]="limit" [collectionSize]="total" *ngIf="total > 0" (pageChange)="pageChange($event)">
+      </ngb-pagination>
+    </div>
+
+    <div class="col-md-5">
+      <div class="menu-block" *ngIf="!isCheckoutStep">
+        <h6 class="menu-title">{{ "CART_ITEMS" | translate }}</h6>
+        <ng-container>
+          <p class="text-success text-center" *ngIf="orderInfo.cart.length === 0">
+            <b>{{ "EMPTY_CART_MESSAGE" | translate}}</b>
+          </p>
+        </ng-container>
+        <ng-container *ngIf="orderInfo.cart.length > 0">
+          <div class="row cart-items-block" *ngFor="let item of orderInfo.cart;index as i">
+            <div class="col-md-3 pl-0">
+              <div class="img-blocks">
+                <img [src]="item.imageUrl" />
+              </div>
+            </div>
+            <div class="col-md-9">
+              <div class="row">
+                <div class="col-md-10 p-0">
+                  <h6 class="item-name">{{ item.productTitle }}&nbsp;({{item.unit}})</h6>
+                </div>
+                <div class="col-md-2 text-right">
+                  <a class="show-pointer" (click)="removeItemFromCart(i)"><img src="assets/img/img/close.svg" /></a>
+                </div>
+              </div>
+
+              <div class="row mt-1">
+                <div class="col-md-4">
+                  <div class="row counter-block">
+                    <a class="show-pointer" (click)="changeQuantity(changeQuantityTypes.DECREMENT,i)"><img
+                        src="assets/img/img/minus.png" /></a>
+                    <h6 class="counter">{{ item.quantity }}</h6>
+                    <a class="show-pointer" (click)="changeQuantity(changeQuantityTypes.INCREMENT,i)"><img
+                        src="assets/img/img/plus.png" /></a>
+                  </div>
+                </div>
+                <div class="col-md-8 text-right mt-1">
+                  <h6 class="word-flow">{{ item.productTotal }}</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-container>
+            <div class="mx-3">
+              <hr />
+              <div class="row">
+                <div class="col-md-8">
+                  <h6 class="total">{{ "SUB_TOTAL" | translate}}:</h6>
+                </div>
+
+                <div class="col-md-4 text-right">
+                  <h6 class="total-price word-flow">{{orderInfo.subTotal | currency:currencyCode:'symbol':'1.2-2'}}</h6>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-8">
+                  <h6 class="total">{{ "TAX" | translate}}:</h6>
+                </div>
+
+                <div class="col-md-4 text-right">
+                  <h6 class="total-price word-flow">{{orderInfo.tax | currency:currencyCode:'symbol':'1.2-2'}}</h6>
+                </div>
+              </div>
+
+              <hr />
+            </div>
+            <div class="total-btn">
+              <div class="row">
+                <div class="col-md-8">
+                  <h6 class="">{{ "TOTAL" | translate}}:</h6>
+                </div>
+
+                <div class="col-md-4 text-right">
+                  <h6 class="word-flow total-price">{{orderInfo.grandTotal | currency:currencyCode:'symbol':'1.2-2'}}
+                  </h6>
+                </div>
+              </div>
+            </div>
+            <div class="checkout-block mt-5 mx-3">
+              <button class="btn checkout-btn" type="button" (click)="toggleCartSection()">
+                <div class="row">
+                  <div class="col-md-8 text-left col-8">
+                    <span class="dosis-medium text-med m-0">{{"CONTINUE" | translate}}</span>
+                  </div>
+                  <div class="col-md-4 text-right col-4">
+                    <span class="dosis-medium text-med m-0 word-flow">{{orderInfo.grandTotal |
+                      currency:currencyCode:'symbol':'1.2-2'}}</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+      <br />
+      <div class="menu-block" *ngIf="isCheckoutStep">
+        <h6 class="menu-title">
+          <span>
+            <a class="show-pointer" (click)="toggleCartSection()"><img src="assets/img/img/back.svg" /></a>
+          </span>
+          &nbsp;&nbsp;{{"PAYMENT" | translate}}
+        </h6>
+
+        <div class="mx-3">
+          <form (ngSubmit)="placeOrder()" #paymentForm="ngForm">
+            <h6 class="mt-1 pt-2">{{"ORDER_TYPE" | translate}}</h6>
+            <div class="row my-3">
+              <div class="col-md-6">
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="customRadio1" name="customRadio" [value]="orderTypes.DELIVERY"
+                    class="custom-control-input" [(ngModel)]="orderInfo.orderType" (change)="resetAddressData()" />
+                  <label class="custom-control-label" for="customRadio1">
+                    {{"DELIVERY" | translate}}
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6 text-right">
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="customRadio2" name="customRadio" [value]="orderTypes.PICK_UP" required
+                    class="custom-control-input" [(ngModel)]="orderInfo.orderType" (change)="resetAddressData()" />
+                  <label class="custom-control-label" for="customRadio2">{{"PICK_UP" | translate}}</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" *ngIf="orderInfo.orderType == orderTypes.DELIVERY">
+              <label class="text-sm">{{"ADDRESS" | translate}}</label>
+              <input type="text" class="form-control custom-form" name="address" [(ngModel)]="orderInfo.deliveryAddress"
+                required aria-describedby="emailHelp" />
+            </div>
+            <div class="form-group" *ngIf="orderInfo.orderType == orderTypes.DELIVERY">
+              <label class="text-sm">{{"CHOOSE_DELIVERY_DATE" | translate}}</label>
+              <!-- <select class="form-control" name="deliveryDate" [(ngModel)]="orderInfo.deliveryDate" (change)="setSlots()">
+                <option *ngFor="let hour of workingHoursData" [value]="hour._id">
+                  {{hour.date}}
+                </option>
+              </select> -->
+              <ng-select [items]="workingHoursData" ngModel [name]="'deliveryDate'" required [bindLabel]="'date'"
+                [bindValue]="'_id'" (change)="setSlots($event)"></ng-select>
+            </div>
+            <div class="form-group" *ngIf="orderInfo.orderType == orderTypes.DELIVERY && slots.length > 0">
+              <label class="text-sm">{{"CHOOSE_DELIVERY_SLOT" | translate}}</label>
+              <ng-select [items]="slots" [(ngModel)]="orderInfo.deliverySlotId" [name]="'deliverySlotId'" required
+                [bindLabel]="'slot'" [bindValue]="'_id'"></ng-select>
+              <!-- <select class="form-control" name="slot" [(ngModel)]="orderInfo.deliverySlotId">
+                <option *ngFor="let slot of slots" [value]="slot._id">
+                  {{slot.slot}}
+                </option>
+              </select> -->
+            </div>
+            <div class="form-group" *ngIf="orderInfo.orderType == orderTypes.DELIVERY">
+              <label class="text-sm">{{"DELIVERY_CHARGES" | translate}}</label>
+              <input type="number" [min]="0" class="form-control custom-form" name="deliveryCharge"
+                [(ngModel)]="orderInfo.deliveryCharges" required aria-describedby="emailHelp"
+                #deliveryCharge="ngModel" />
+              <span class="help-block" *ngIf="deliveryCharge.dirty && deliveryCharge.value < 0">
+                <small class="text-danger">{{"INVALID_DELIVERY_CHARGE" | translate}}</small>
+              </span>
+            </div>
+            <div class="form-group" *ngIf="orderInfo.orderType == orderTypes.PICK_UP">
+              <label class="text-sm">{{"CASH_COLLECTED" | translate}}</label>
+              <ng-select [(ngModel)]="orderInfo.cashCollected" [name]="'cashCollected'" required>
+                <ng-option [value]="true">{{ "YES" | translate }}</ng-option>
+                <ng-option [value]="false">{{ "NO" | translate }}</ng-option>
+              </ng-select>
+            </div>
+            <div class="form-group">
+              <label class="text-sm">{{"CUSTOMER_NAME" | translate}}</label>
+              <input type="text" class="form-control custom-form" name="customerName"
+                [(ngModel)]="orderInfo.customerName" aria-describedby="emailHelp" />
+            </div>
+            <div class="form-group">
+              <label class="text-sm">{{"CUSTOMER_MOBILE_NUMBER" | translate}}</label>
+              <input type="text" class="form-control custom-form" name="mobileNumber"
+                [(ngModel)]="orderInfo.customerMobileNumber" required aria-describedby="emailHelp" />
+            </div>
+            <div class="form-group">
+              <label class="text-sm">{{"EMAIL" | translate}}</label>
+              <input type="email" class="form-control custom-form" name="emailId" [(ngModel)]="orderInfo.customerEmail"
+                aria-describedby="emailHelp" />
+            </div>
+
+            <div class="row mt-5">
+
+              <div class="col-md-12">
+                <button class="btn checkout-btn" type="submit"
+                  [disabled]="paymentForm.invalid || isLoading || orderInfo.deliveryCharges < 0">
+                  Place Order
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<ng-template #variantModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">{{"SELECT_VARIANTS" | translate}}</h4>
+  </div>
+  <div class="modal-body">
+    <form>
+      <select class="form-control" name="variant" [(ngModel)]="selectedProduct.variant" required>
+        <option *ngFor="let variant of selectedProduct.product.variant" [ngValue]="variant"
+          [disabled]="variant.productStock === 0">{{variant.unit}}
+          ({{variant.price | currency:currencyCode:'symbol':'1.2-2'}}) {{variant.productStock === 0 ? ("OUT_OF_STOCK" |
+          translate) :''}}</option>
+      </select>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="closesModal()">
+      {{"CANCEL" | translate}}
+    </button>
+    <button type="button" class="btn btn-outline-dark" (click)="addProductToCart()">
+      {{"ADD_TO_CART" | translate}}
+    </button>
+  </div>
+</ng-template>

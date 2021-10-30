@@ -1,0 +1,100 @@
+<div class="row text-left">
+    <div class="col-12">
+        <div class="card">
+            <form #f="ngForm" (ngSubmit)="updateWorkingHours()">
+                <div class="row text-left">
+                    <div class="col-md-8 offset-md-2">
+                        <div class="container">
+                            <div class="content-header text-primary text-center">
+                                {{ "STORE_TIME_SETTINGS" | translate }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col text-primary"></div>
+                            <div class="col">
+                                <section id="multiple-buttons">
+                                    <div class="row text-left">
+                                        <div class="col-sm-12 pull-right">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <button class="btn btn-raised add-button save-all"
+                                                                type="submit">
+                                                                <i class="ft-plus"></i>
+                                                                &nbsp;
+                                                                {{ "SAVE_All" | translate }}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                        <div class="card" *ngFor="let working of workingHours.deliveryTimeSlots;index as i">
+                            <div class="form-group row">
+                                <div class="col-sm-5">
+                                    <h4> {{"TIME_SLOT" | translate }}</h4>
+                                    <div>
+                                        <input type="checkbox" [checked]="working.isOpen"
+                                            (change)="working.isOpen = $event.target.checked"> {{working.date |
+                                        translate }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <div class="col-sm-5">
+                                    <h4>{{"TIME_RANGE" | translate }}</h4>
+                                </div>
+                            </div>
+
+                            <div class="form-group row" *ngFor="let slot of working.timings;first as f;index as j">
+                                <div class="col-sm-3">
+                                    <label>{{"FROM" | translate }}</label><br>
+                                    <select class="custom-select" name="from-{{working.date}}-{{i}}-{{j}}"
+                                        [(ngModel)]="slot.openTime" required>
+                                        <option disabled>{{"Select slot" | translate }}</option>
+                                        <ng-container *ngFor="let availableSlot of timeSlots">
+                                            <option [ngValue]=availableSlot.minutes>{{availableSlot.time}}</option>
+                                        </ng-container>
+                                    </select>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>{{"TO" | translate }}</label><br>
+                                    <select class="custom-select" name="to-{{working.date}}-{{i}}-{{j}}"
+                                        [(ngModel)]="slot.closeTime" required>
+                                        <option disabled>{{"SELECT SLOT" | translate }}</option>
+                                        <ng-container *ngFor="let availableSlot of timeSlots">
+                                            <option [ngValue]="availableSlot.minutes">{{availableSlot.time}}</option>
+                                        </ng-container>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <label>{{"IS_OPEN" | translate }}</label>
+                                    <ui-switch [checked]="slot.isOpen === true" (change)="slot.isOpen = $event">
+                                    </ui-switch>
+                                </div>
+                                <div class="col-sm-1 mt-3">
+                                    <button class="btn btn-raised add-button save-all" type="button"
+                                        (click)="addNewTimeSchedule(i)">
+                                        {{"ADD" | translate }}
+                                    </button>
+                                </div>
+                                <div class="col-sm-2 mt-3" *ngIf="!f">
+                                    <button class="btn btn-raised add-button save-all" type="button"
+                                        (click)="removeTimeSchedule(i,j)">
+                                        {{"REMOVE" | translate }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

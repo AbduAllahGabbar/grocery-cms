@@ -1,0 +1,208 @@
+<div class="row">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-12">
+        <div class="card">
+            <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-6 col-6">
+                    <h6 class="color-primary text-md sourcesans-regular">
+                        {{"SALES_GRAPH" | translate}}
+                    </h6>
+                </div>
+                <div class="col-xl-5 col-lg-5 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="graphFilters.salesGraphFilterType" (change)="getSalesGraph()">
+                        <option disabled>{{"SELECT_FILTER" | translate}}</option>
+                        <option value="DAILY">{{"DAILY" | translate}}</option>
+                        <option value="MONTHLY">{{"MONTHLY"| translate}}</option>
+                    </select>
+                </div>
+            </div> <br>
+            <canvas baseChart *ngIf="lineChartData[0].data.length > 0" width="400" height="120"
+                [datasets]="lineChartData" [labels]="lineChartLabels" [options]="lineChartOptions"
+                [colors]="lineChartColors" [legend]="false" [chartType]="lineChartType"
+                [plugins]="lineChartPlugins"></canvas>
+
+            <h6 class="text-info text-center" *ngIf="lineChartData[0].data.length === 0">
+                <strong>{{"NO_RECORDS_FOUND" | translate}}</strong>
+            </h6>
+
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-12">
+        <div class="card">
+            <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-6 col-6">
+                    <h6 class="color-primary text-md sourcesans-regular">
+                        {{"USER_REGISTRATION_GRAPH" | translate}}
+                    </h6>
+                </div>
+                <div class="col-xl-5 col-lg-5 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="graphFilters.userRegistrationGraphFilter" (change)="getUserRegistrationGraph()">
+                        <option disabled>{{"SELECT_FILTER" | translate}}</option>
+                        <option value="DAILY">{{"DAILY" | translate}}</option>
+                        <option value="MONTHLY">{{"MONTHLY"| translate}}</option>
+                    </select>
+                </div>
+            </div> <br>
+            <canvas baseChart *ngIf="userRegistrationChartData[0].data.length > 0" width="400" height="120"
+                [datasets]="userRegistrationChartData" [labels]="userRegistrationChartLabels" [options]="lineChartOptions"
+                [colors]="lineChartColors" [legend]="false" [chartType]="lineChartType"
+                [plugins]="lineChartPlugins"></canvas>
+
+            <h6 class="text-info text-center" *ngIf="userRegistrationChartData[0].data.length === 0">
+                <strong>{{"NO_RECORDS_FOUND" | translate}}</strong>
+            </h6>
+
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-12">
+        <div class="card">
+            <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-6 col-6">
+                    <h6 class="color-primary text-md sourcesans-regular">
+                        {{"CATEGORY_SALES" | translate}}
+                    </h6>
+                </div>
+                <div class="col-xl-5 col-lg-5 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="graphFilters.categoryGraphFilterType" (change)="getCategorySalesGraph()">
+                        <option disabled>{{"SELECT_FILTER" | translate}}</option>
+                        <option value="TODAY">{{"TODAY" | translate}}</option>
+                        <option value="YESTERDAY">{{"YESTERDAY" | translate}}</option>
+                        <option value="WEEK-TO-DATE">{{"WTD" | translate}}</option>
+                        <option value="MONTH-TO-DATE">{{"MTD" | translate}}</option>
+                        <option value="YEAR-TO-DATE">{{"YTD" | translate}}</option>
+                    </select>
+                </div>
+            </div> <br>
+            <canvas *ngIf="barChartData[0].data.length > 0" baseChart [datasets]="barChartData"
+                [labels]="barChartLabels" [options]="barChartOptions" [plugins]="barChartPlugins"
+                [legend]="false" [chartType]="barChartType" [colors]="categoryGraphColors">
+            </canvas>
+            <h6 class="text-info text-center" *ngIf="barChartData[0].data.length === 0">
+                <strong>{{"NO_RECORDS_FOUND" | translate}}</strong>
+            </h6>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-12">
+        <div class="card">
+            <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-6 col-6">
+                    <h6 class="color-primary text-md sourcesans-regular">
+                        {{"PRODUCT_SALES" | translate}}
+                    </h6>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="selectedCategory" (change)="getProductSalesGraph()">
+                        <option disabled selected>{{"SELECT_CATEGORY" | translate}}</option>
+                        <option *ngFor="let category of categoryList" [value]="category._id">{{category.title}}</option>
+                    </select>
+                </div>
+                <div class="col-xl-2 col-lg-5 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="graphFilters.productFilter" (change)="getProductSalesGraph()">
+                        <option disabled>{{"SELECT_FILTER" | translate}}</option>
+                        <option value="TODAY">{{"TODAY" | translate}}</option>
+                        <option value="YESTERDAY">{{"YESTERDAY" | translate}}</option>
+                        <option value="WEEK-TO-DATE">{{"WTD" | translate}}</option>
+                        <option value="MONTH-TO-DATE">{{"MTD" | translate}}</option>
+                        <option value="YEAR-TO-DATE">{{"YTD" | translate}}</option>
+                    </select>
+                </div>
+            </div> <br>
+            <canvas *ngIf="productBbarChartData[0].data.length > 0" baseChart [datasets]="productBbarChartData"
+                [labels]="productBarChartLabels" [options]="barChartOptions" [plugins]="barChartPlugins"
+                [legend]="false" [chartType]="barChartType" [colors]="categoryGraphColors">
+            </canvas>
+            <h6 class="text-info text-center" *ngIf="productBbarChartData[0].data.length === 0">
+                <strong>{{"NO_RECORDS_FOUND" | translate}}</strong>
+            </h6>
+        </div>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-xl-6 col-lg-12 col-md-12 col-12">
+        <div class="card">
+            <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-6 col-6">
+                    <h6 class="color-primary text-md sourcesans-regular">
+                        {{"TOP_SELLER" | translate}}
+                    </h6>
+                </div>
+                <div class="col-xl-5 col-lg-5 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="graphFilters.topSellingProductFilterType" (change)="getTopSellingProducts()">
+                        <option disabled>{{"SELECT_FILTER" | translate}}</option>
+                        <option value="TODAY">{{"TODAY" | translate}}</option>
+                        <option value="YESTERDAY">{{"YESTERDAY" | translate}}</option>
+                        <option value="WEEK-TO-DATE">{{"WTD" | translate}}</option>
+                        <option value="MONTH-TO-DATE">{{"MTD" | translate}}</option>
+                        <option value="YEAR-TO-DATE">{{"YTD" | translate}}</option>
+                    </select>
+                </div>
+            </div>
+            <br>
+            <h6 class="text-info text-center" *ngIf="productList.length === 0">
+                <strong>{{"NO_RECORDS_FOUND" | translate}}</strong>
+            </h6>
+            <table class="table" *ngIf="productList.length > 0">
+                <thead>
+                    <tr>
+                        <th class="text-center">{{"PRODUCT_NAME" | translate}}</th>
+                        <th class="text-center">{{"COUNT" | translate}}</th>
+                        <th class="text-center">{{"SALES" | translate}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="text-center" *ngFor="let product of productList">
+                        <td>{{product._id.productName}}</td>
+                        <td>{{product.count}}</td>
+                        <td>{{product.total | currency:'USD':'symbol':'1.2-2'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-xl-6 col-lg-12 col-md-12 col-12">
+        <div class="card">
+            <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-6 col-6">
+                    <h6 class="color-primary text-md sourcesans-regular">
+                        {{"PAYMEMT_TYPES_GRAPH" | translate}}
+                    </h6>
+                </div>
+                <div class="col-xl-5 col-lg-5 col-md-6 col-6">
+                    <select class="form-control selection-form" id="exampleFormControlSelect1"
+                        [(ngModel)]="graphFilters.paymentTypeFilter" (change)="getPaymentTypeGraph()">
+                        <option disabled>Select filter</option>
+                        <option value="TODAY">Today</option>
+                        <option value="YESTERDAY">Yesterday</option>
+                        <option value="WEEK-TO-DATE">WTD</option>
+                        <option value="MONTH-TO-DATE">MTD</option>
+                        <option value="YEAR-TO-DATE">YTD</option>
+                        <option value="LAST-MONTH">Last Month</option>
+                        <option value="LAST-YEAR">Last Year</option>
+                    </select>
+                </div>
+            </div> <br>
+            <canvas baseChart *ngIf="paymentTypeGraphData.length > 0" [data]="paymentTypeGraphData"
+                [labels]="paymentTypeGraphLabels" [chartType]="pieChartType" [colors]="paymentTypesGraphColours"
+                [options]="pieChartOptions" [plugins]="pieChartPlugins" [legend]="pieChartLegend">
+            </canvas>
+            <h6 class="text-info text-center" *ngIf="paymentTypeGraphData.length === 0">
+                <strong>{{"NO_RECORDS_FOUND" | translate}}</strong>
+            </h6>
+        </div>
+    </div>
+</div>

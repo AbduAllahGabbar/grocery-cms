@@ -1,0 +1,81 @@
+<div class="row">
+    <div class="col text-primary">
+        <h2>{{ "ADMINS" | translate }}</h2>
+    </div>
+    <div class="col">
+        <!--Multiple buttons Starts-->
+        <section id="multiple-buttons">
+            <div class="row text-left">
+                <div class="col-sm-12 pull-right">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <button type="button" class="btn btn-raised add-button"
+                                        [routerLink]="['/admins/add-admins']" aria-label="Add">
+                                        <i class="ft-plus"></i> &nbsp;
+                                        {{ "ADD_NEW_ADMIN" | translate }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!--Multiple buttons Ends-->
+    </div>
+</div>
+<app-custom-loader *ngIf="isLoading"></app-custom-loader>
+<!--table starts-->
+<section id="ng-tables">
+    <div class="row text-left">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-body">
+                        <form>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">{{ "NAME" | translate }}</th>
+                                            <th scope="col">{{ "EMAIL" | translate }}</th>
+                                            <th scope="col">{{ "MOBILE_NUMBER" | translate }}</th>
+                                            <th scope="col">{{ "STATUS" | translate }}</th>
+                                            <th scope="col">{{ "DELETE" | translate }}</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr *ngFor=" let list of adminList | paginate : { itemsPerPage: limit,
+                                            currentPage: page, totalItems: total }; let i = index ">
+                                            <td scope="row">{{ list.firstName }}{{list.lastName}}</td>
+                                            <td scope="row">{{ list.email }}</td>
+                                            <td scope="row">{{ list.mobileNumber }}</td>
+                                            <td>
+                                                <ui-switch [(ngModel)]="list['status']" [name]="list._id"
+                                                    (change)="updateStatus($event, list._id)">
+                                                </ui-switch>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-raised btn-danger" type="button"
+                                                    (click)="deleteAdmin(list._id)">
+                                                    <em class="fa fa-trash"></em>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex justify-content-between p-2" *ngIf="adminList.length > 0">
+                                <pagination-controls (pageChange)="pageChange($event)"></pagination-controls>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
