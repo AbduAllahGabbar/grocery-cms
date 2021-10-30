@@ -5797,7 +5797,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "environment", function() { return environment; });
 var environment = {
     production: false,
-    API_ENDPOINT: "http://localhost:4200/api",
+    API_ENDPOINT: "http://178.62.13.212:5000/api",
     PREDEFINED: true
 };
 
