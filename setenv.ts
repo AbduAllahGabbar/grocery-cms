@@ -18,7 +18,7 @@ else if (environment === 'local') targetPath = `./src/environments/environment.l
 const environmentFileContent = `
 export const environment = {
     production: ${isProduction},
-	API_ENDPOINT: "http://localhost:5000",
+	API_ENDPOINT: "http://178.62.13.212:5000",
 	PREDEFINED: ${true}
  };
 `;
